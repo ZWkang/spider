@@ -17,10 +17,12 @@ sys.setdefaultencoding('utf-8')
 def kuai():
 	global lock
 	print '快代理采集中'.decode('utf-8')
+
 	kuaidaili = ['inha','intr','outha','outtr']
 	#url的列表用于拼凑
 	for x in range(len(kuaidaili)):
-		for y in range(1,2):
+		sleep(1)
+		for y in range(1,4):
 		#range决定了要读取多少页   其实一般代理都是前面一些页面比较多可用的
 			kuai_queue.put(y)
 		if kuai_queue.qsize()==0:
@@ -48,11 +50,12 @@ def kuai():
 #西刺
 def xici():
 	print '西刺采集进行中'.decode('utf-8')
-	sleep(4)
+	
 	xici = ['nn','nt','wn','wt']
 	global lock
 	for x in range(len(xici)):
-		for y in range(1,2):
+		sleep(1)
+		for y in range(1,4):
 			url = 'http://www.xicidaili.com/'+str(xici[x])+'/'+str(y)
 			r = requests.get(url,headers=random.choice(headers))
 			if r.status_code!=200:
@@ -77,11 +80,39 @@ def xici():
 			# break
 	
 	print '采集xici网页代理ip结束'.decode('utf-8')
+#http://www.cz88.net/
+def getcz():
+	print "采集 http://www.cz88.net/ 开始".decode('utf-8')
+	url = ['index','http_']
+	for i in range(1,6):
+		if i ==1:
+			urls = 'http://www.cz88.net/proxy/'+str(url[0])+'.shtml'
+		else:
+			urls= 'http://www.cz88.net/proxy/'+url[1]+str(i)+'.shtml'
+
+		print urls+'此页面采集开始'.decode('utf-8')
+		sleep(1)
+		r = requests.get(urls,headers=random.choice(headers))
+		if r.status_code!=200:
+			sleep(6)
+		soup = BeautifulSoup(r.content)
+		iplen = soup.select('.ip')
+		port = soup.select('.port')
+		# print iplen[1].string
+		for i in range(1,len(iplen)):
+			# print iplen[i].string
+			ipports = 'http://'+iplen[i].string+':'+str(port[i].get_text())
+			work_queue.put(ipports)
+			print str(ipports)+' 采集成功'.decode('utf-8')
+
+
+
+
 def isAlive(x):
 	global lock
 	threadname = str('线程-'+str(x+1))
-	print 
-	sleep(3)
+	# print 
+	sleep(10)
 	print (threadname+'-开启 测试开始').decode('utf-8').encode('gbk')
 	# print work_queue.qsize()
 	while work_queue.qsize()>0:
@@ -91,7 +122,7 @@ def isAlive(x):
 		proxies={xxx[0]:url}
 		# print url
 		try:
-			r = requests.get('http://1212.ip138.com/ic.asp',proxies=proxies,timeout=15)
+			r = requests.get('http://1212.ip138.com/ic.asp',proxies=proxies,timeout=3)
 			if r.status_code==200:
 				print threadname+'---'+url+(' 测试成功 写入文件 '.decode('utf-8'))
 				lock.acquire()
@@ -116,6 +147,7 @@ def isAlive(x):
 	return False
 
 if __name__ == '__main__':
+	start = time.clock()
 	print 'start'
 	headers = [
 	    {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0'},
@@ -140,19 +172,22 @@ if __name__ == '__main__':
 
 	num1=int(caijinumber)
 	num2=int(testnumber)
-	for x in xrange(0, num1):
+	for x in xrange(num1):
 		# t1 = 
 		threads.append(threading.Thread(target=kuai))
 		threads.append(threading.Thread(target=xici))
+		threads.append(threading.Thread(target=getcz))
 		#添加采集线程
-		sleep(5)
+		# sleep(5)
 	for x in xrange(0, num2):
 		# t1 = 
 		threads.append(threading.Thread(target=isAlive,args=(x,)))
-		#添加测试线程
+		# 添加测试线程
 		# sleep(3)
 	for t in threads:
 		t.setDaemon(True)
 		t.start()
 	for t in threads:
 		t.join() 
+	end = time.clock()
+	print 'Running time: %s Seconds'%(end-start)
