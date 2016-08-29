@@ -1,0 +1,6 @@
+http://www.lagou.com/jobs/positionAjax.json?city=%E5%8C%97%E4%BA%AC&first=true&kd=web&pn=1
+利用json数据接口
+city是城市
+first指第一页开始时候为true
+pn为页数
+kd为查询岗位
