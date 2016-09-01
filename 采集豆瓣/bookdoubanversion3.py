@@ -61,6 +61,7 @@ class Message:
 
 
 def getHtmlInfo(urls,ref):
+    sleep(1)
     global _cookies
     global starts
     #简单获取
@@ -85,6 +86,10 @@ def getHtmlInfo(urls,ref):
         header['Referer']= ref
         ContentPage_Info = requests.get(urls,headers=header,cookies=_cookies)
     if (ContentPage_Info.status_code==403):
+        v=  open('logbadss.txt','a+')
+        v.write(time.strftime('%Y-%m-%d %H:%M:%S')+' status_code=403 sleep 30s \n')
+        v.close()
+
         sleep(30)
         _cookies = requests.get('https://book.douban.com').cookies
         print ContentPage_Info.status_code
@@ -92,6 +97,9 @@ def getHtmlInfo(urls,ref):
     # sleep(1)
     print ContentPage_Info.status_code
     print queues.qsize()
+    ends = time.clock()
+    #计算网页获取速度处理
+    print 'GetPage time: %s Seconds'%(ends-starts)
     return ContentPage_Info
 
     
@@ -114,10 +122,10 @@ def HandleInfo(Book_Url,ContentPage_Info):
     except Exception:
         if str(ContentPage_Info.history[0]) =="<Response [302]>":
             book_info=''
-            book_tags=''
+            booktags=''
         else:
             book_info='无'
-            book_tags='无'
+            booktags='无'
     bookt = []
     for i in xrange(len(booktags)):
         bookt.append(booktags[i].get_text().replace(' ','').replace('\n','').replace(u'\xa0',u''))
@@ -161,6 +169,9 @@ def HandleInfo(Book_Url,ContentPage_Info):
 
     aa = Message(Book_Url,bookname,book_image,book_info,content,booktags,dicts,rate_num,rate_peo)
     ccc = aa.packdd()
+    ends = time.clock()
+        #计算网页获取速度处理
+    print 'controlPage time: %s Seconds'%(ends-starts)
     return ccc
 
 
@@ -168,17 +179,25 @@ def HandleInfo(Book_Url,ContentPage_Info):
 def makeUrl(Ref_url,values):
     url = str(Ref_url)+'?start='+str((values*20))+'&type=T'
     # print url
-    print url
+    print url.decode('utf-8').encode('gbk')
     return url
 
 def getPage(url):
-    sss = requests.Session()
-    header_ss = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
-    
-    dddd = sss.get(url,headers = header_ss)
-    ccc = BeautifulSoup(dddd.content)
-    value_s = ccc.select('#subject_list .paginator > a')
-    return int(value_s[-1].get_text())
+    try:
+        sss = requests.Session()
+        header_ss = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
+        
+        dddd = sss.get(url,headers = header_ss)
+        ccc = BeautifulSoup(dddd.content)
+        value_s = ccc.select('#subject_list .paginator > a')
+        return int(value_s[-1].get_text())
+    except Exception:
+        v=  open('logbadss.txt','a+')
+        v.write(time.strftime('%Y-%m-%d %H:%M:%S')+' getpage error sleep 30s \n')
+        v.close()
+        sleep(30)
+
+        getPage(url)
 #得到分类内所有的url
 def getUrl(pops_url):
     # print pops_url
@@ -233,10 +252,13 @@ def getUrls(url):
         return False
     if(r.status_code==403):
         print r.status_code
+        v=  open('logbadss.txt','a+')
+        v.write(time.strftime('%Y-%m-%d %H:%M:%S')+' status_code=403  sleep 30s \n')
+        v.close()
         sleep(30)
         # print '123'
         _cookies = requests.get('https://book.douban.com').cookies
-        print url
+        print url.decode('utf-8').encode('gbk')
         getUrls(url)
     return infourl
 
@@ -263,19 +285,19 @@ def aaa(Ref_Url):
 # HandleInfo(url,getHtmlInfo(url,''))
 queues = Queue.Queue()
 if __name__ == '__main__':
+    sleep(30)
     _cookies = requests.get('https://book.douban.com').cookies
     # getUrl()
     # aaa()
     # listss = ["爱情","经典","传记","日本文学","散文","青春","文化","旅行","社会学","英国","言情","科幻","科普","村上春树","生活","东野圭吾","艺术","台湾","悬疑","设计","经济学","成长","管理","励志","法国","武侠","政治","社会","奇幻","心理","经济","思维","韩寒","诗歌","童话","日本漫画","摄影","建筑","耽美","亦舒","金融","商业","女性","宗教","杂文","电影","王小波","互联网","三毛","人生","儿童文学","古典文学","计算机","英国文学","数学","安妮宝贝","张爱玲","网络小说","投资","职场","香港","政治学","名著","余华","推理小说","美国文学","美食","郭敬明","教育","穿越","金庸","德国","游记","轻小说","工具书","回忆录","人类学","个人管理","编程","思想","纪实","教材","营销","英语","阿加莎·克里斯蒂","中国历史","几米","国学","東野圭吾","时间管理","灵修","BL","散文随笔","心灵","政治哲学","魔幻","法国文学","张小娴","音乐","幾米","人性","青春文学","当代文学","哈利波特","人文","科学"]
-    listss=["设计","政治","社会","建筑","宗教","电影","数学","政治学","回忆录","思想","中国历史","国学","音乐","人文","戏剧","人物传记","绘画","艺术史","佛教","军事","西方哲学","近代史","二战","考古","自由主义","美术","爱情","旅行","生活","成长","励志","心理","摄影","女性","职场","美食","教育","游记","灵修","健康","情感","手工","养生","两性","人际关系","家居","自助游","经济学","管理","经济","金融","商业","投资","营销","创业","理财","广告","股票","企业史","策划","科普","互联网","编程","科学","交互设计","用户体验","算法","web","科技","UE","通信","交互","UCD","神经网络","程序"]
+    listss=["算法","web","科技","UE","通信","交互","UCD","神经网络","程序"]
     for i in xrange(len(listss)):
         filename = listss[i]
-
         RRREEEFFF = pop(str(filename))
         getUrl(RRREEEFFF)
         aaa(RRREEEFFF)
     # print getPage('https://book.douban.com/tag/%E6%9D%91%E4%B8%8A%E6%98%A5%E6%A0%91?start=0&type=T')
 
 # print header
-end = time.clock()
-print 'Running time: %s Seconds'%(end-start)
+    end = time.clock()
+    print 'Running time: %s Seconds'%(end-start)
