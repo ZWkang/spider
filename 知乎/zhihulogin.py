@@ -28,14 +28,16 @@ url_link = str(int(time.time()*1000))
 captcha_url='http://www.zhihu.com/captcha.gif?r='+url_link+'&type=login'
 #http://www.zhihu.com/captcha.gif?r='+url_link+'&type=login&lang=cn
 r = Zhihu_session.get(captcha_url,headers =headers)
-
-
+email = raw_input('请输入邮箱:'.decode('utf-8').encode('gbk'))
+password = raw_input('请输入密码:'.decode('utf-8').encode('gbk'))
 with open('code.gif','wb') as f:
 	f.write(r.content)
 Popen('code.gif',shell =True)
 captcha =raw_input('captcha: ')
+
 print captcha
-data={"email":"xxx","password":"xxx","_xsrf":str(_xsrf),'remember_me':'true','captcha':captcha}
+
+data={"email":email,"password":password,"_xsrf":str(_xsrf),'remember_me':'true','captcha':captcha}
 print Zhihu_session.post('https://www.zhihu.com/login/email',data=data,headers=headers).json()
 
 
